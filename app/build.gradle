@@ -11,6 +11,13 @@ buildscript {
 
 apply plugin: 'com.android.application'
 
+Properties props = new Properties()
+try {
+    props.load(new FileInputStream(file(project.property("MyProject.properties"))))
+} catch (Exception ex) {
+    throw new GradleException("Missing MyProject.properties, check the gradle.properties file.");
+}
+
 android {
     compileSdkVersion rootProject.ext.compileSdkVersion
     buildToolsVersion rootProject.ext.buildToolsVersion
@@ -25,11 +32,13 @@ android {
         signingConfig signingConfigs.debug
     }
     signingConfigs {
-        debug {
-            keyAlias 'development'
-            keyPassword '8juventus6'
-            storeFile file('/Users/wademorris/AndroidStudioProjects/mt-dev.jks')
-            storePassword '8juventus6'
+        signingConfigs {
+            debug {
+                storeFile file(props['keystore'])
+                storePassword props['keystore.password']
+                keyAlias props['key.alias']
+                keyPassword props['key.password']
+            }
         }
     }
     buildTypes {
@@ -37,18 +46,27 @@ android {
             minifyEnabled false
             shrinkResources false
             signingConfig signingConfigs.debug
+            debuggable true
+            zipAlignEnabled false
         }
         release {
             minifyEnabled true
             shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
             signingConfig signingConfigs.debug
+            debuggable false
+            jniDebuggable false
+            zipAlignEnabled true
         }
     }
     lintOptions {
         checkReleaseBuilds false
         abortOnError false
         disable 'MissingTranslation', 'ExtraTranslation'
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_7
+        targetCompatibility JavaVersion.VERSION_1_7
     }
 }
 
